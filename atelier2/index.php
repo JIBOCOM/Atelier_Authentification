@@ -1,27 +1,26 @@
 <?php
-// Démarrer une session utilisateur qui sera en mesure de pouvoir gérer les Cookies
+// Démarre la session
 session_start();
 
-// Vérifier si l'utilisateur est déjà en possession d'un cookie valide (cookie authToken ayant le contenu 12345)
-// Si l'utilisateur possède déjà ce cookie, il sera redirigé automatiquement vers la page home.php
-// Dans le cas contraire il devra s'identifier.
-if (isset($_COOKIE['authToken']) && $_COOKIE['authToken'] === '12345') {
-    header('Location: page_admin.php');
+// Vérifier si l'utilisateur est déjà connecté
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
+    header('Location: page_admin.php'); // Si l'utilisateur s'est déjà connecté alors il sera automatiquement redirigé vers la page protected.php
     exit();
 }
 
-// Gérer la soumission du formulaire
+// Gérer le formulaire de connexion
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Vérification simple du username et de son password.
-    // Si ok alors on initialise le cookie sur le poste de l'utilisateur 
-    if ($username === 'admin' && $password === 'admin') {
-        $token = bin2hex(random_bytes(16));
-        setcookie('authToken', $token, time() + 60, '/', '', false, true);
-        echo "Votre jeton unique est : " . $token;
-        header('Location: page_admin.php'); // L'utilisateur est dirigé vers la page home.php
+    // Vérification simple des identifiants (à améliorer avec une base de données)
+    if ($username === 'admin' && $password === 'secret') {
+        // Stocker les informations utilisateur dans la session
+        $_SESSION['loggedin'] = true;
+        $_SESSION['username'] = $username;
+
+        // Rediriger vers la page protégée
+        header('Location: page_admin.php');
         exit();
     } else {
         $error = "Nom d'utilisateur ou mot de passe incorrect.";
@@ -33,12 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
 </head>
 <body>
-    <h1>Atelier authentification par Cookie</h1>
-    <h3>La page <a href="page_admin.php">page_admin.php</a> est inaccéssible tant que vous ne vous serez pas connecté avec le login 'admin' et mot de passe 'secret'</h3>
+    <h1>Atelier authentification par Session</h1>
+    <h3>La page <a href="page_admin.php">page_admin.php</a> de cet atelier 3 est inaccéssible tant que vous ne vous serez pas connecté avec le login 'admin' et mot de passe 'secret'</h3>
     <form method="POST" action="">
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" id="username" name="username" required>
